@@ -6,12 +6,12 @@
   <title>Camera FPS Changer</title>
   <style>
     body {
-  font-family: 'Arial', sans-serif; 
-  font-weight: bold; 
-  background-color: #121212; 
-  color: #ffffff; 
-  text-align: center;
-  padding: 20px;
+      font-family: 'Arial', sans-serif;
+      font-weight: bold;
+      background-color: #121212;
+      color: #ffffff;
+      text-align: center;
+      padding: 20px;
     }
     h1 {
       font-size: 2em;
@@ -23,8 +23,7 @@
       max-width: 100%;
       height: auto;
     }
-    #fpsInput {
-      width: 60px;
+    #fpsInput, #cameraSelect {
       font-size: 16px;
       text-align: center;
       border: 2px solid #ff99cc;
@@ -56,13 +55,13 @@
   <p class="instructions">Tap or click the button to allow camera access</p>
   <button id="startButton">Press me :3</button>
   <br>
+  <label for="cameraSelect" id="cameraLabel" style="display:none;">Select Camera:</label>
+  <select id="cameraSelect" style="display:none;"></select>
+  <br>
   <label for="fpsInput" id="fpsLabel" style="display:none;">FPS:</label>
   <input id="fpsInput" type="number" min="1" value="30" style="display:none;" />
   <br><br>
-  <!-- The thing shows your cam -->
   <canvas id="canvas" style="display:none;"></canvas>
-  
-  <!-- Hidden something? -->
   <video id="video" autoplay playsinline style="display:none;"></video>
   
   <script>
@@ -71,34 +70,43 @@
     const canvas = document.getElementById('canvas');
     const fpsInput = document.getElementById('fpsInput');
     const fpsLabel = document.getElementById('fpsLabel');
+    const cameraSelect = document.getElementById("cameraSelect");
+    const cameraLabel = document.getElementById("cameraLabel");
     const ctx = canvas.getContext('2d');
     let intervalId;
     let currentFps = parseInt(fpsInput.value);
 
-    startButton.addEventListener('click', () => {
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-          video.srcObject = stream;
-          video.play(); // Forcing the video to play
-          video.addEventListener('loadedmetadata', () => {
-            // Set dimensions
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            // Hide the start button
-            startButton.style.display = 'none';
-            // Show the FPS input and canvas
-            fpsInput.style.display = 'inline-block';
-            fpsLabel.style.display = 'inline';
-            canvas.style.display = 'block';
-            startDrawing();
-          });
-        })
-        .catch(err => {
-          alert('Oops! Unable to access the camera :3 ' + err);
-        });
-    });
+    async function getCameras() {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cameras = devices.filter(device => device.kind === "videoinput");
+      cameraSelect.innerHTML = "";
+      cameras.forEach((camera, index) => {
+        const option = document.createElement("option");
+        option.value = camera.deviceId;
+        option.textContent = camera.label || `Camera ${index + 1}`;
+        cameraSelect.appendChild(option);
+      });
+      cameraLabel.style.display = "inline";
+      cameraSelect.style.display = "inline-block";
+    }
 
-    // Function to start
+    async function startCamera(deviceId) {
+      if (intervalId) clearInterval(intervalId);
+      const constraints = { video: { deviceId: deviceId ? { exact: deviceId } : undefined } };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      video.srcObject = stream;
+      video.play();
+      video.addEventListener('loadedmetadata', () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        startButton.style.display = 'none';
+        fpsInput.style.display = 'inline-block';
+        fpsLabel.style.display = 'inline';
+        canvas.style.display = 'block';
+        startDrawing();
+      });
+    }
+
     function startDrawing() {
       if (intervalId) clearInterval(intervalId);
       const intervalTime = 1000 / currentFps;
@@ -107,7 +115,15 @@
       }, intervalTime);
     }
 
-    // Check in realtime
+    startButton.addEventListener('click', async () => {
+      await getCameras();
+      startCamera();
+    });
+
+    cameraSelect.addEventListener("change", () => {
+      startCamera(cameraSelect.value);
+    });
+
     fpsInput.addEventListener('input', () => {
       const newFps = parseInt(fpsInput.value);
       if (!isNaN(newFps) && newFps > 0) {
