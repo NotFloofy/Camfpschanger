@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Camera FPS Changer Cutie</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background-color: #ffe6f0;
+      color: #333;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+    #canvas {
+      border: 2px solid #ff99cc;
+      margin-top: 20px;
+      max-width: 100%;
+      height: auto;
+    }
+    #fpsInput {
+      width: 60px;
+      font-size: 16px;
+      text-align: center;
+      border: 2px solid #ff99cc;
+      border-radius: 5px;
+      padding: 5px;
+      margin-top: 10px;
+    }
+    #startButton {
+      font-size: 18px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #ff99cc;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    #startButton:hover {
+      background-color: #ff80b3;
+    }
+    .instructions {
+      font-size: 1.1em;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Camera FPS Changer! :3</h1>
+  <p class="instructions">Tap the button below to allow camera access, cutie~</p>
+  <button id="startButton">Start Camera :3</button>
+  <br>
+  <label for="fpsInput" id="fpsLabel" style="display:none;">FPS:</label>
+  <input id="fpsInput" type="number" min="1" value="30" style="display:none;" />
+  <br><br>
+  <!-- The canvas displays your camera stream cutely! -->
+  <canvas id="canvas" style="display:none;"></canvas>
+  
+  <!-- Hidden video element to capture the stream -->
+  <video id="video" autoplay playsinline style="display:none;"></video>
+  
+  <script>
+    const startButton = document.getElementById("startButton");
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const fpsInput = document.getElementById('fpsInput');
+    const fpsLabel = document.getElementById('fpsLabel');
+    const ctx = canvas.getContext('2d');
+    let intervalId;
+    let currentFps = parseInt(fpsInput.value);
+
+    // When the cute button is clicked, ask for camera permission
+    startButton.addEventListener('click', () => {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          video.srcObject = stream;
+          video.addEventListener('loadedmetadata', () => {
+            // Set canvas size to video dimensions
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            // Hide the start button after access is granted
+            startButton.style.display = 'none';
+            // Show FPS input and canvas cutie~
+            fpsInput.style.display = 'inline-block';
+            fpsLabel.style.display = 'inline';
+            canvas.style.display = 'block';
+            startDrawing();
+          });
+        })
+        .catch(err => {
+          alert('Oops! Unable to access the camera :3 ' + err);
+        });
+    });
+
+    // Function to start drawing the video frames onto the canvas at the desired FPS
+    function startDrawing() {
+      if (intervalId) clearInterval(intervalId);
+      const intervalTime = 1000 / currentFps;
+      intervalId = setInterval(() => {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      }, intervalTime);
+    }
+
+    // Listen for changes in the FPS textbox to update the drawing rate in real-time!
+    fpsInput.addEventListener('input', () => {
+      const newFps = parseInt(fpsInput.value);
+      if (!isNaN(newFps) && newFps > 0) {
+        currentFps = newFps;
+        startDrawing();
+      }
+    });
+  </script>
+</body>
+</html>
