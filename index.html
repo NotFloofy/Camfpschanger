@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Camera FPS Changer Cutie</title>
+  <title>Camera FPS Changer</title>
   <style>
     body {
       font-family: 'Comic Sans MS', cursive, sans-serif;
@@ -51,17 +51,17 @@
   </style>
 </head>
 <body>
-  <h1>Camera FPS Changer! :3</h1>
-  <p class="instructions">Tap the button below to allow camera access, cutie~</p>
-  <button id="startButton">Start Camera :3</button>
+  <h1>Camera FPS Changer :3</h1>
+  <p class="instructions">Tap or click the button to allow camera access</p>
+  <button id="startButton">Press me :3</button>
   <br>
   <label for="fpsInput" id="fpsLabel" style="display:none;">FPS:</label>
   <input id="fpsInput" type="number" min="1" value="30" style="display:none;" />
   <br><br>
-  <!-- The canvas displays your camera stream cutely! -->
+  <!-- The thing shows your cam -->
   <canvas id="canvas" style="display:none;"></canvas>
   
-  <!-- Hidden video element to capture the stream -->
+  <!-- Hidden something? -->
   <video id="video" autoplay playsinline style="display:none;"></video>
   
   <script>
@@ -74,18 +74,18 @@
     let intervalId;
     let currentFps = parseInt(fpsInput.value);
 
-    // When the cute button is clicked, ask for camera permission
     startButton.addEventListener('click', () => {
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
           video.srcObject = stream;
+          video.play(); // Forcing the video to play
           video.addEventListener('loadedmetadata', () => {
-            // Set canvas size to video dimensions
+            // Set dimensions
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            // Hide the start button after access is granted
+            // Hide the start button
             startButton.style.display = 'none';
-            // Show FPS input and canvas cutie~
+            // Show the FPS input and canvas
             fpsInput.style.display = 'inline-block';
             fpsLabel.style.display = 'inline';
             canvas.style.display = 'block';
@@ -97,7 +97,7 @@
         });
     });
 
-    // Function to start drawing the video frames onto the canvas at the desired FPS
+    // Function to start
     function startDrawing() {
       if (intervalId) clearInterval(intervalId);
       const intervalTime = 1000 / currentFps;
@@ -106,7 +106,7 @@
       }, intervalTime);
     }
 
-    // Listen for changes in the FPS textbox to update the drawing rate in real-time!
+    // Check in realtime
     fpsInput.addEventListener('input', () => {
       const newFps = parseInt(fpsInput.value);
       if (!isNaN(newFps) && newFps > 0) {
